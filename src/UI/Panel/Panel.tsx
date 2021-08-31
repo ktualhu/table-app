@@ -1,3 +1,5 @@
+import './styles.scss';
+
 interface IProps {
   isChecked: boolean;
   selectedValue: string;

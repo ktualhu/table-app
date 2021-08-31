@@ -1,5 +1,6 @@
 import React from 'react';
-import { IEntity } from '../App';
+import IEntity from '../../types/entity';
+import './styles.scss';
 
 interface IProps {
   data: IEntity[];
@@ -9,20 +10,33 @@ interface IProps {
 
 function Table(props: IProps) {
   const handleActiveRows = (item: IEntity) => {
-    if (!props.active) {
-      return renderTableRow(item);
-    } else {
-      if (item.isActive && !item.parentId) {
-        return renderTableRow(item);
-      }
+    if (props.active) {
+      if (item.isActive) return renderTableRow(item);
+      return null;
     }
+    return renderTableRow(item);
   };
+
+  const nestedRender = (item: IEntity) => {
+    if (item.show) {
+      return item.children.map((val) => {
+        return (
+          <React.Fragment key={val.id}>
+            {handleActiveRows(val)}
+            {val.children.length ? nestedRender(val) : null}
+          </React.Fragment>
+        );
+      });
+    }
+    return null;
+  };
+
   const renderTableRow = (item: IEntity) => {
     return (
       <tr key={item.id} className={item.parentId ? 'trChild' : ''}>
         <td>{item.id}</td>
         <td>{item.parentId}</td>
-        {/* <td>{item.isActive ? 'true' : 'false'}</td> */}
+        <td>{item.isActive ? 'true' : 'false'}</td>
         <td>{item.balance}</td>
         <td>{item.name}</td>
         <td>{item.email}</td>
@@ -48,6 +62,7 @@ function Table(props: IProps) {
         <tr className="header">
           <th>ID</th>
           <th>ParentID</th>
+          <th>Active</th>
           <th>Balance</th>
           <th>Name</th>
           <th>Email</th>
@@ -60,11 +75,7 @@ function Table(props: IProps) {
             return (
               <React.Fragment key={item.id}>
                 {handleActiveRows(item)}
-                {item.show
-                  ? item.children.map((childItem) => {
-                      return handleActiveRows(childItem);
-                    })
-                  : null}
+                {nestedRender(item)}
               </React.Fragment>
             );
           }

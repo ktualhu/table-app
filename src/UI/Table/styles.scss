@@ -1,0 +1,45 @@
+.Table {
+  width: 1024px;
+  border-collapse: collapse;
+  margin: auto;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  border-radius: 5px;
+
+  thead tr {
+    background-color: #009879;
+    color: #ffffff;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  th,
+  td {
+    padding: 12px 15px;
+    text-align: center;
+  }
+
+  tbody tr {
+    border-bottom: 1px solid #dddddd;
+  }
+
+  .trChild {
+    background-color: #edfffb;
+    position: relative;
+  }
+}
+
+.Button {
+  border: 2px solid #009879;
+  background-color: #009879;
+  color: white;
+  font-weight: bold;
+  transition: 0.4s;
+  padding: 8px 0;
+  width: 100px;
+
+  &:hover {
+    background-color: white;
+    color: #009879;
+    cursor: pointer;
+  }
+}

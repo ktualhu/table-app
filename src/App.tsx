@@ -1,63 +1,75 @@
 import { useState } from 'react';
 import './styles/styles.scss';
-import Panel from './UI/Panel';
-import Table from './UI/Table';
+import Panel from './UI/Panel/Panel';
+import Table from './UI/Table/Table';
 import { useEffect } from 'react';
 import useTransform from './useTransform';
-
-export interface IEntity {
-  id: number;
-  parentId: number;
-  isActive: boolean;
-  balance: string;
-  name: string;
-  email: string;
-  children: IEntity[];
-  show: boolean;
-}
+import cloneDeep from 'lodash.clonedeep';
+import IEntity from './types/entity';
 
 function App() {
   const defaultData = useTransform();
-  const [data, setData] = useState(defaultData);
+  const [data, setData] = useState([] as IEntity[]);
   const [checked, setChecked] = useState(false);
   const [selectedValue, setSelectedValue] = useState('none');
 
   useEffect(() => {
-    switch (selectedValue) {
-      case 'email':
-        setData((prevData) => {
-          const temp = [...prevData];
-          temp.forEach((val) => {
-            if (val.children?.length) {
-              val.children.sort((a, b) => (a.email < b.email ? -1 : 1));
-            }
-          });
-          return [...temp.sort((a, b) => (a.email < b.email ? -1 : 1))];
+    setData(defaultData);
+  }, [defaultData]);
+
+  useEffect(() => {
+    const tempData = cloneDeep(data);
+    if (selectedValue !== 'none') {
+      tempData
+        .sort((a, b) => {
+          if (selectedValue === 'email') return a.email < b.email ? -1 : 1;
+          else return a.balance < b.balance ? -1 : 1;
+        })
+        .forEach((el) => {
+          if (el.children.length) {
+            sortNestedChild(el.children, selectedValue);
+          }
         });
-        break;
-      case 'balance':
-        setData((prevData) => {
-          const temp = [...prevData];
-          temp.forEach((val) => {
-            if (val.children?.length) {
-              val.children.sort((a, b) => (a.balance < b.balance ? -1 : 1));
-            }
-          });
-          return [...temp.sort((a, b) => (a.balance < b.balance ? -1 : 1))];
-        });
-        break;
+      setData(tempData);
     }
   }, [selectedValue]);
 
+  const findNestedChild = (arr: IEntity[], id: number) => {
+    arr.every((el) => {
+      if (el.id === id) {
+        el.show = !el.show;
+        return false;
+      }
+      if (el.children.length) findNestedChild(el.children, id);
+      return true;
+    });
+  };
+
+  const sortNestedChild = (arr: IEntity[], filter: string) => {
+    return arr
+      .sort((a, b) => {
+        if (selectedValue === 'email') return a.email < b.email ? -1 : 1;
+        else return a.balance < b.balance ? -1 : 1;
+      })
+      .forEach((el) => {
+        if (el.children.length) {
+          sortNestedChild(el.children, filter);
+        }
+      });
+  };
+
   const handleShowChildren = (id: number) => {
-    const tempData = [...data];
-    const itemInd = tempData.findIndex((val) => val.id === id);
-    if (itemInd > -1) {
-      const item = tempData[itemInd];
-      item.show = !item.show;
-      tempData[itemInd] = item;
-      setData(tempData);
-    }
+    const tempData = cloneDeep(data);
+    tempData.every((el) => {
+      if (el.id === id) {
+        el.show = !el.show;
+        return false;
+      } else if (el.children.length) {
+        findNestedChild(el.children, id);
+      }
+      return true;
+    });
+    setData(tempData);
   };
 
   return (

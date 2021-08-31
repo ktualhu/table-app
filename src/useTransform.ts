@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { IEntity } from './App';
+import IEntity from './types/entity';
 import jsonData from './data/default.json';
 
 function useTransform() {
@@ -7,23 +7,35 @@ function useTransform() {
 
   useEffect(() => {
     if (jsonData) {
-      const parents = jsonData.filter((val) => !val.parentId) as IEntity[];
-      jsonData
-        .filter((val) => val.parentId)
-        .forEach((val) => {
-          const parent = parents.find((p) => p.id === val.parentId);
-          if (parent) {
-            if (!parent.children) {
-              parent.children = [];
-              parent.show = false;
-            }
-            parent.children.push(val as IEntity);
-          }
-        });
+      const elems = jsonData.reduce((acc, val) => {
+        if (!val.parentId) {
+          const newVal = {
+            ...val,
+            show: false,
+            children: nested(val as IEntity),
+          } as IEntity;
+          acc.push(newVal);
+        }
+        return acc;
+      }, [] as IEntity[]);
 
-      setData(parents);
+      setData(elems);
     }
   }, []);
+
+  const nested = (val: IEntity) => {
+    return jsonData.reduce((acc, newVal) => {
+      if (val.id === newVal.parentId) {
+        const v: IEntity = {
+          ...newVal,
+          show: false,
+          children: nested(newVal as IEntity),
+        };
+        acc.push(v);
+      }
+      return acc;
+    }, [] as IEntity[]);
+  };
 
   return data;
 }
